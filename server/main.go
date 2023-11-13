@@ -28,7 +28,7 @@ func setupRouter() *gin.Engine {
 	return r
 }
 
-func Start(port int32) {
+func Start(host string, port int32) {
 	r := setupRouter()
-	r.Run("127.0.0.1:" + strconv.Itoa(int(port)))
+	r.Run(host + ":" + strconv.Itoa(int(port)))
 }

@@ -4,25 +4,21 @@ import (
 	"net/url"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/wangyw15/Chate/server"
 	"github.com/wangyw15/Chate/util"
 )
-
-var port int32
-var host string
-var proxy string
 
 var rootCmd = &cobra.Command{
 	Use:   "chate",
 	Short: "A tool for getting images from animate onlineshop by jan code",
 	Long:  "A tool for getting images from animate onlineshop by jan code",
 	Run: func(cmd *cobra.Command, args []string) {
-		parsed, err := url.Parse(proxy)
-		if err != nil {
-			panic(err)
+		parsed, err := url.Parse(viper.GetString("proxy"))
+		if err == nil {
+			util.SetProxy(parsed)
 		}
-		util.SetProxy(parsed)
-		server.Start(port)
+		server.Start(viper.GetString("host"), viper.GetInt32("port"))
 	},
 }
 
@@ -36,7 +32,19 @@ func Execute() {
 func init() {
 	// allows the program to run from explorer
 	cobra.MousetrapHelpText = ""
-	rootCmd.PersistentFlags().Int32VarP(&port, "port", "p", 8080, "port to listen")
-	rootCmd.PersistentFlags().StringVar(&host, "host", "127.0.0.1", "host to listen")
-	rootCmd.PersistentFlags().StringVar(&proxy, "proxy", "", "proxy to use")
+
+	// config
+	viper.SetConfigName("config")
+	viper.SetConfigType("json")
+	viper.AddConfigPath(".")
+	viper.ReadInConfig()
+
+	// flags
+	rootCmd.PersistentFlags().Int32P("port", "p", 8080, "port to listen")
+	rootCmd.PersistentFlags().String("host", "127.0.0.1", "host to listen")
+	rootCmd.PersistentFlags().String("proxy", "", "proxy to use")
+
+	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
+	viper.BindPFlag("host", rootCmd.PersistentFlags().Lookup("host"))
+	viper.BindPFlag("proxy", rootCmd.PersistentFlags().Lookup("proxy"))
 }
